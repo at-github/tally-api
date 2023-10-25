@@ -4,4 +4,6 @@
 
 ### Launch the app
 
-`flask run`
+```shell
+flask run
+```
