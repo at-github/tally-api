@@ -30,6 +30,10 @@ def put_transaction(id):
 def delete_transaction(id):
     return '', 204
 
+@app.get('/transactions/<id>')
+def get_transaction(id):
+    return fake_entity(id=id), 200
+
 @app.errorhandler(404)
 def respond_not_found(error):
     return _respond_error('This page does not exist', error.code)
