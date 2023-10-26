@@ -1,8 +1,8 @@
 import os
 from flask import Flask, send_from_directory
 
-def fake_entity(amount=10, date='2023-10-26'):
-    return {'amount': amount, 'date': date}
+def fake_entity(amount=10, date='2023-10-26', id=1):
+    return {'id': id, 'amount': amount, 'date': date}
 
 app = Flask(__name__)
 
@@ -17,6 +17,10 @@ def favicon():
 @app.get('/transactions')
 def get_transactions():
     return [fake_entity(), fake_entity()], 200
+
+@app.post('/transactions')
+def post_transaction():
+    return fake_entity(), 201
 
 @app.errorhandler(404)
 def respond_not_found(error):
