@@ -7,3 +7,9 @@
 ```shell
 flask run
 ```
+
+or
+
+```shell
+python app.py
+```

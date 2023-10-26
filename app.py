@@ -48,3 +48,6 @@ def _respond_error(message, status_code=400):
         'message': message,
         'status': status_code
     }, status_code
+
+if __name__ == '__main__':
+    app.run(host="localhost", port=8000, debug=True)
