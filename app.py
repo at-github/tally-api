@@ -20,4 +20,7 @@ def get_transactions():
 
 @app.errorhandler(404)
 def page_not_found(error):
-    return {'message': 'This page does not exist', 'status': 404}, 404
+    return {
+        'message': 'This page does not exist',
+        'status': error.code
+    }, error.code
