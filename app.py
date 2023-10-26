@@ -1,5 +1,8 @@
 import os
-from flask import Flask, url_for, send_from_directory
+from flask import Flask, send_from_directory
+
+def fake_entity(amount=10, date='2023-10-26'):
+    return {'amount': amount, 'date': date}
 
 app = Flask(__name__)
 
@@ -11,7 +14,10 @@ def favicon():
         mimetype='image/vnd.microsoft.icon'
     )
 
-@app.route('/')
+@app.route('/transactions')
+def get_transactions():
+    return [fake_entity(), fake_entity()], 200
 
-def hello_world():
-    return '<h1>Hello</h1>'
+@app.errorhandler(404)
+def page_not_found(error):
+    return {'message': 'This page does not exist', 'status': 404}, 404
