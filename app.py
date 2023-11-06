@@ -1,10 +1,14 @@
 import os
+import psycopg2
 from flask import Flask, send_from_directory
+
+DB_TABLE_TRANSACTION = 'transactions'
 
 def fake_entity(amount=10, date='2023-10-26', id=1):
     return {'id': id, 'amount': amount, 'date': date}
 
 app = Flask(__name__)
+app.config.from_prefixed_env()
 
 @app.get('/favicon.ico')
 def favicon():
@@ -16,7 +20,14 @@ def favicon():
 
 @app.get('/transactions')
 def get_transactions():
-    return [fake_entity(), fake_entity()], 200
+    db_connection = get_db_connection()
+    cursor = db_connection.cursor()
+    cursor.execute('select * from {}'.format(DB_TABLE_TRANSACTION))
+    transactions = cursor.fetchall()
+    cursor.close()
+    db_connection.close()
+
+    return transactions, 200
 
 @app.post('/transactions')
 def post_transaction():
@@ -48,3 +59,11 @@ def _respond_error(message, status_code=400):
         'message': message,
         'status': status_code
     }, status_code
+
+def get_db_connection():
+    return psycopg2.connect(
+        host=app.config['DB_HOST'],
+        database=app.config['DB_NAME'],
+        user=app.config['DB_USER'],
+        password=app.config['DB_PASSWORD']
+    )
