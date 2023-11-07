@@ -53,6 +53,16 @@ def post_transaction():
     except ValueError:
         raise BadRequest("Bad format for 'date' field: {}".format(date_format))
 
+    db_connection = get_db_connection()
+    cursor = db_connection.cursor()
+    cursor.execute(
+        'insert into {} (amount, date) values (%(int)s, %(date)s)'.format(DB_TABLE_TRANSACTION),
+        {'str': DB_TABLE_TRANSACTION, 'int': amount, 'date': date}
+    )
+    db_connection.commit()
+    cursor.close()
+    db_connection.close()
+
 @app.put('/transactions/<id>')
 def put_transaction(id):
     return fake_entity(id=id), 200
