@@ -56,12 +56,18 @@ def post_transaction():
     db_connection = get_db_connection()
     cursor = db_connection.cursor()
     cursor.execute(
-        'insert into {} (amount, date) values (%(int)s, %(date)s)'.format(DB_TABLE_TRANSACTION),
+        'insert into {table} (amount, date) values (%(int)s, %(date)s) returning *'.format(table=DB_TABLE_TRANSACTION),
         {'str': DB_TABLE_TRANSACTION, 'int': amount, 'date': date}
     )
-    db_connection.commit()
+    saved_amount, saved_date, saved_id = cursor.fetchone()
     cursor.close()
     db_connection.close()
+
+    return {
+        'amount': saved_amount,
+        'date': saved_date.strftime(date_format),
+        'id': saved_id
+    }, 201
 
 @app.put('/transactions/<id>')
 def put_transaction(id):
