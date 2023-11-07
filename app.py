@@ -1,6 +1,7 @@
 import os
 import psycopg2
-from flask import Flask, send_from_directory
+from werkzeug.exceptions import BadRequest
+from flask import Flask, request, send_from_directory
 
 DB_TABLE_TRANSACTION = 'transactions'
 
@@ -31,7 +32,12 @@ def get_transactions():
 
 @app.post('/transactions')
 def post_transaction():
-    return fake_entity(), 201
+    body = request.get_json()
+    try:
+        amount = body['amount']
+        date   = body['date']
+    except KeyError as exception:
+        raise BadRequest("Missing field: {}".format(exception))
 
 @app.put('/transactions/<id>')
 def put_transaction(id):
@@ -44,6 +50,10 @@ def delete_transaction(id):
 @app.get('/transactions/<id>')
 def get_transaction(id):
     return fake_entity(id=id), 200
+
+@app.errorhandler(400)
+def respond_not_found(error):
+    return _respond_error(error.description, error.code)
 
 @app.errorhandler(404)
 def respond_not_found(error):
