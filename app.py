@@ -1,5 +1,6 @@
 import os
 import psycopg2
+import psycopg2.extras
 from werkzeug.exceptions import BadRequest
 from datetime import datetime
 from flask import Flask, request, send_from_directory
@@ -23,7 +24,7 @@ def favicon():
 @app.get('/transactions')
 def get_transactions():
     db_connection = get_db_connection()
-    cursor = db_connection.cursor()
+    cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cursor.execute('select * from {}'.format(DB_TABLE_TRANSACTION))
     transactions = cursor.fetchall()
     cursor.close()
@@ -54,20 +55,17 @@ def post_transaction():
         raise BadRequest("Bad format for 'date' field: {}".format(date_format))
 
     db_connection = get_db_connection()
-    cursor = db_connection.cursor()
+    cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cursor.execute(
         'insert into {table} (amount, date) values (%(int)s, %(date)s) returning *'.format(table=DB_TABLE_TRANSACTION),
         {'str': DB_TABLE_TRANSACTION, 'int': amount, 'date': date}
     )
-    saved_amount, saved_date, saved_id = cursor.fetchone()
+    transaction = cursor.fetchone()
     cursor.close()
     db_connection.close()
 
-    return {
-        'amount': saved_amount,
-        'date': saved_date.strftime(date_format),
-        'id': saved_id
-    }, 201
+    transaction['date'] = transaction['date'].strftime(date_format)
+    return transaction, 201
 
 @app.put('/transactions/<id>')
 def put_transaction(id):
