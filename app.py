@@ -1,6 +1,7 @@
 import os
 import psycopg2
 from werkzeug.exceptions import BadRequest
+from datetime import datetime
 from flask import Flask, request, send_from_directory
 
 DB_TABLE_TRANSACTION = 'transactions'
@@ -38,6 +39,19 @@ def post_transaction():
         date   = body['date']
     except KeyError as exception:
         raise BadRequest("Missing field: {}".format(exception))
+
+    if type(amount) != int:
+        raise BadRequest("Bad type for 'amount' field")
+
+    if type(date) != str:
+        raise BadRequest("Bad type for 'date' field")
+
+    date_format = '%Y-%m-%d'
+
+    try:
+        datetime.strptime(date, date_format)
+    except ValueError:
+        raise BadRequest("Bad format for 'date' field: {}".format(date_format))
 
 @app.put('/transactions/<id>')
 def put_transaction(id):
