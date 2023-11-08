@@ -24,7 +24,7 @@ def favicon():
 
 @app.get('/transactions')
 def get_transactions():
-    db_connection = get_db_connection()
+    db_connection = _get_db_connection()
     cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cursor.execute('select * from {}'.format(DB_TABLE_TRANSACTION))
     transactions = cursor.fetchall()
@@ -53,7 +53,7 @@ def post_transaction():
     except ValueError:
         raise BadRequest("Bad format for 'date' field: {}".format(DATE_FORMAT))
 
-    db_connection = get_db_connection()
+    db_connection = _get_db_connection()
     cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cursor.execute(
         'insert into {table} (amount, date) values (%(int)s, %(date)s) returning *'.format(table=DB_TABLE_TRANSACTION),
@@ -80,7 +80,7 @@ def get_transaction(id):
     if not id.isdigit():
         raise BadRequest("Bad type for 'id' field")
 
-    db_connection = get_db_connection()
+    db_connection = _get_db_connection()
     cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cursor.execute(
         'select * from {} where id = %(int)s'.format(DB_TABLE_TRANSACTION),
@@ -117,7 +117,7 @@ def _respond_error(message, status_code=400):
         'status': status_code
     }, status_code
 
-def get_db_connection():
+def _get_db_connection():
     return psycopg2.connect(
         host=app.config['DB_HOST'],
         database=app.config['DB_NAME'],
