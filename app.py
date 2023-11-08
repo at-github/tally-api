@@ -8,9 +8,6 @@ from flask import Flask, request, send_from_directory
 DB_TABLE_TRANSACTION = 'transactions'
 DATE_FORMAT = '%Y-%m-%d'
 
-def fake_entity(amount=10, date='2023-10-26', id=1):
-    return {'id': id, 'amount': amount, 'date': date}
-
 app = Flask(__name__)
 app.config.from_prefixed_env()
 
@@ -36,22 +33,9 @@ def get_transactions():
 @app.post('/transactions')
 def post_transaction():
     body = request.get_json()
-    try:
-        amount = body['amount']
-        date   = body['date']
-    except KeyError as exception:
-        raise BadRequest("Missing field: {}".format(exception))
-
-    if type(amount) != int:
-        raise BadRequest("Bad type for 'amount' field")
-
-    if type(date) != str:
-        raise BadRequest("Bad type for 'date' field")
-
-    try:
-        datetime.strptime(date, DATE_FORMAT)
-    except ValueError:
-        raise BadRequest("Bad format for 'date' field: {}".format(DATE_FORMAT))
+    amount = body['amount']
+    date   = body['date']
+    _check_data_for_post_and_put(body)
 
     db_connection = _get_db_connection()
     cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
@@ -60,6 +44,7 @@ def post_transaction():
         {'str': DB_TABLE_TRANSACTION, 'int': amount, 'date': date}
     )
     transaction = cursor.fetchone()
+    db_connection.commit()
     cursor.close()
     db_connection.close()
 
@@ -69,7 +54,26 @@ def post_transaction():
 
 @app.put('/transactions/<id>')
 def put_transaction(id):
-    return fake_entity(id=id), 200
+    body = request.get_json()
+    _check_data_for_post_and_put(body)
+    model_get_transaction(id)
+    amount = body['amount']
+    date   = body['date']
+
+    db_connection = _get_db_connection()
+    cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cursor.execute(
+        'update {table} set (amount, date) = (%(int)s, %(date)s) returning *'.format(table=DB_TABLE_TRANSACTION),
+        {'str': DB_TABLE_TRANSACTION, 'int': amount, 'date': date}
+    )
+    transaction = cursor.fetchone()
+    db_connection.commit()
+    cursor.close()
+    db_connection.close()
+
+    transaction['date'] = transaction['date'].strftime(DATE_FORMAT)
+
+    return transaction, 200
 
 @app.delete('/transactions/<id>')
 def delete_transaction(id):
@@ -131,3 +135,21 @@ def _get_db_connection():
         user=app.config['DB_USER'],
         password=app.config['DB_PASSWORD']
     )
+
+def _check_data_for_post_and_put(data):
+    try:
+        amount = data['amount']
+        date   = data['date']
+    except KeyError as exception:
+        raise BadRequest("Missing field: {}".format(exception))
+
+    if type(amount) != int:
+        raise BadRequest("Bad type for 'amount' field")
+
+    if type(date) != str:
+        raise BadRequest("Bad type for 'date' field")
+
+    try:
+        datetime.strptime(date, DATE_FORMAT)
+    except ValueError:
+        raise BadRequest("Bad format for 'date' field: {}".format(DATE_FORMAT))
