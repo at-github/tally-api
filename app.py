@@ -77,22 +77,7 @@ def delete_transaction(id):
 
 @app.get('/transactions/<id>')
 def get_transaction(id):
-    if not id.isdigit():
-        raise BadRequest("Bad type for 'id' field")
-
-    db_connection = _get_db_connection()
-    cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cursor.execute(
-        'select * from {} where id = %(int)s'.format(DB_TABLE_TRANSACTION),
-        {'int': id}
-    )
-    transaction = cursor.fetchone()
-    cursor.close()
-    db_connection.close()
-
-    if transaction is None:
-        raise NotFound("Transaction’s id '{}' not found".format(id))
-
+    transaction = model_get_transaction(id)
     transaction['date'] = transaction['date'].strftime(DATE_FORMAT)
 
     return transaction, 200
@@ -110,7 +95,29 @@ def respond_not_found(error):
 def respond_not_allowed(error):
     return _respond_error('Your are not allowed', error.code)
 
+# Future model
+
+def model_get_transaction(id):
+    if not id.isdigit():
+        raise BadRequest("Bad type for 'id' field")
+
+    db_connection = _get_db_connection()
+    cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cursor.execute(
+        'select * from {} where id = %(int)s'.format(DB_TABLE_TRANSACTION),
+        {'int': id}
+    )
+    transaction = cursor.fetchone()
+    cursor.close()
+    db_connection.close()
+
+    if transaction is None:
+        raise NotFound("Transaction’s id '{}' not found".format(id))
+
+    return transaction
+
 # Private
+
 def _respond_error(message, status_code=400):
     return {
         'message': message,
