@@ -77,6 +77,18 @@ def put_transaction(id):
 
 @app.delete('/transactions/<id>')
 def delete_transaction(id):
+    model_get_transaction(id)
+
+    db_connection = _get_db_connection()
+    cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cursor.execute(
+        'delete from {table} where id = %(int)s'.format(table=DB_TABLE_TRANSACTION),
+        {'int': id}
+    )
+    db_connection.commit()
+    cursor.close()
+    db_connection.close()
+
     return '', 204
 
 @app.get('/transactions/<id>')
