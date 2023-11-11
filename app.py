@@ -70,9 +70,27 @@ async def post_transaction(transaction: Transaction):
 
     return transaction
 
-@app.errorhandler(404)
-def respond_not_found(error):
-    return _respond_error(error.description, error.code)
+@app.put('/transactions/{id}', status_code=200)
+async def put_transaction(id: str, transaction: Transaction):
+    amount = transaction.amount
+    date   = transaction.date
+
+    model_get_transaction(id)
+
+    db_connection = _get_db_connection()
+    cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cursor.execute(
+        'update {table} set (amount, date) = (%(int)s, %(date)s) returning *'.format(table=DB_TABLE_TRANSACTION),
+        {'str': DB_TABLE_TRANSACTION, 'int': amount, 'date': date}
+    )
+    transaction = cursor.fetchone()
+    db_connection.commit()
+    cursor.close()
+    db_connection.close()
+
+    transaction['date'] = transaction['date'].strftime(DATE_FORMAT)
+
+    return transaction
 
 @app.errorhandler(405)
 def respond_not_allowed(error):
