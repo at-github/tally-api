@@ -5,17 +5,20 @@
 ### Configure the application
 
 ```shell
-FLASK_ENV=[development|production]
-FLASK_DEBUG=[True|False]
-FLASK_RUN_HOST=[your host]
-FLASK_RUN_PORT=xxxx
-FLASK_DB_HOST=db_host
-FLASK_DB_NAME='db name'
-FLASK_DB_USER='db user'
-FLASK_DB_PASSWORD='db password'
+ENV=[development|production]
+DEBUG=[True|False]
+DB_HOST=db_host
+DB_NAME='db name'
+DB_USER='db user'
+DB_PASSWORD='db password'
 ```
 ### Launch the app
 
 ```shell
-flask run
+uvicorn app:app --host hostdomain --port xxxx
+```
+
+```shell
+# Or with live reload
+uvicorn app:app --host hostdomain --port xxxx --reload
 ```

@@ -3,13 +3,27 @@ import psycopg2
 import psycopg2.extras
 from werkzeug.exceptions import BadRequest, NotFound
 from datetime import datetime
-from flask import Flask, request, send_from_directory
+import uvicorn
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from fastapi import FastAPI
 
 DB_TABLE_TRANSACTION = 'transactions'
 DATE_FORMAT = '%Y-%m-%d'
 
-app = Flask(__name__)
-app.config.from_prefixed_env()
+class Settings(BaseSettings):
+    ENV: str
+    DEBUG: bool = True
+    DB_HOST: str
+    DB_NAME: str
+    DB_USER: str
+    DB_PASSWORD: str
+
+    model_config = SettingsConfigDict(env_file=".env")
+
+def get_settings():
+    return Settings()
+
+app = FastAPI()
 
 @app.get('/favicon.ico')
 def favicon():
@@ -141,11 +155,13 @@ def _respond_error(message, status_code=400):
     }, status_code
 
 def _get_db_connection():
+    settings = get_settings()
+
     return psycopg2.connect(
-        host=app.config['DB_HOST'],
-        database=app.config['DB_NAME'],
-        user=app.config['DB_USER'],
-        password=app.config['DB_PASSWORD']
+        host=settings.DB_HOST,
+        database=settings.DB_NAME,
+        user=settings.DB_USER,
+        password=settings.DB_PASSWORD
     )
 
 def _check_data_for_post_and_put(data):
