@@ -1,0 +1,19 @@
+_id: ut_cfe235c98a3a4b84a0bf6cba2b6e84f5
+type: UnitTest
+parentId: uts_35b423c176c34102be9c636c14d67314
+modified: 1699741510623
+created: 1699741445586
+requestId: req_f1332e383c2b446895fc3c3ef681dad6
+name: Schema
+code: |-
+  const response = await insomnia.send()
+  const body = JSON.parse(response.data)
+
+  expect(body).to.be.an('object')
+  expect(body).to.have.property('id')
+
+  expect(body).to.have.property('amount')
+  expect(body.amount).to.be.an('number')
+
+  expect(body).to.have.property('date')
+  expect(body.date).to.match(/^\d{4}-\d{2}-\d{2}/)

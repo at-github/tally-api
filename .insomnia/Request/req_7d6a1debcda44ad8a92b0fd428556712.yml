@@ -1,10 +1,10 @@
 _id: req_7d6a1debcda44ad8a92b0fd428556712
 type: Request
 parentId: wrk_88412ad666fa43dcbbfa30db23026e9a
-modified: 1699740732169
+modified: 1699741470511
 created: 1699709352982
 url: "{{ _.base_url }}/transactions"
-name: transactions
+name: List transactions
 description: ""
 method: GET
 body: {}

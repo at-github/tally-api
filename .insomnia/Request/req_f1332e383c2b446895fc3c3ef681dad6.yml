@@ -1,19 +1,27 @@
-_id: req_e2cb8cd50efc4ebd95875e547975390d
+_id: req_f1332e383c2b446895fc3c3ef681dad6
 type: Request
 parentId: wrk_88412ad666fa43dcbbfa30db23026e9a
-modified: 1699741489888
-created: 1699740752388
-url: "{{ _.base_url }}/transactions/1"
-name: Get transaction
+modified: 1699741478398
+created: 1699741330448
+url: "{{ _.base_url }}/transactions"
+name: Create transaction
 description: ""
-method: GET
-body: {}
+method: POST
+body:
+  mimeType: application/json
+  text: |-
+    {
+    	"amount": 100,
+    	"date": "2023-11-11"
+    }
 parameters: []
 headers:
+  - name: Content-Type
+    value: application/json
   - name: User-Agent
     value: insomnia/2023.5.8
 authentication: {}
-metaSortKey: -1699708942077.5
+metaSortKey: -1699709147529.75
 isPrivate: false
 settingStoreCookies: true
 settingSendCookies: true
