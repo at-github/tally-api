@@ -1,0 +1,23 @@
+_id: req_742cc970c6f14af2a0b6a443a83d59fb
+type: Request
+parentId: wrk_88412ad666fa43dcbbfa30db23026e9a
+modified: 1699741924608
+created: 1699741855283
+url: "{{ _.base_url }}/transactions/23"
+name: Delete transaction
+description: ""
+method: DELETE
+body: {}
+parameters: []
+headers:
+  - name: User-Agent
+    value: insomnia/2023.5.8
+authentication: {}
+metaSortKey: -1699708736625.25
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global
