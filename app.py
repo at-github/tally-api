@@ -6,6 +6,7 @@ from datetime import datetime
 import uvicorn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 
 DB_TABLE_TRANSACTION = 'transactions'
 DATE_FORMAT = '%Y-%m-%d'
@@ -25,13 +26,9 @@ def get_settings():
 
 app = FastAPI()
 
-@app.get('/favicon.ico')
+@app.get('/favicon.ico', include_in_schema=False)
 def favicon():
-    return send_from_directory(
-        os.path.join(app.root_path, 'static'),
-        'favicon.ico',
-        mimetype='image/vnd.microsoft.icon'
-    )
+    return FileResponse('static/favicon.ico')
 
 @app.get('/transactions')
 def get_transactions():
