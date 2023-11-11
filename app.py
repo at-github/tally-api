@@ -6,7 +6,7 @@ from datetime import datetime
 import uvicorn
 from pydantic import BaseModel, validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 
 DB_TABLE_TRANSACTION = 'transactions'
@@ -71,11 +71,14 @@ async def post_transaction(transaction: Transaction):
     return transaction
 
 @app.put('/transactions/{id}', status_code=200)
-async def put_transaction(id: str, transaction: Transaction):
+async def put_transaction(id: int, transaction: Transaction):
     amount = transaction.amount
     date   = transaction.date
 
-    model_get_transaction(id)
+    try:
+        model_get_transaction(id)
+    except NotFound as exception:
+        raise HTTPException(status_code=404, detail=exception.description)
 
     db_connection = _get_db_connection()
     cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
@@ -92,16 +95,28 @@ async def put_transaction(id: str, transaction: Transaction):
 
     return transaction
 
-@app.errorhandler(405)
-def respond_not_allowed(error):
-    return _respond_error('Your are not allowed', error.code)
+@app.delete('/transactions/{id}', status_code=204)
+def delete_transaction(id: int):
+    try:
+        model_get_transaction(id)
+    except NotFound as exception:
+        raise HTTPException(status_code=404, detail=exception.description)
+
+    db_connection = _get_db_connection()
+    cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cursor.execute(
+        'delete from {table} where id = %(int)s'.format(table=DB_TABLE_TRANSACTION),
+        {'int': id}
+    )
+    db_connection.commit()
+    cursor.close()
+    db_connection.close()
+
+    return ''
 
 # Future model
 
-def model_get_transaction(id):
-    if not id.isdigit():
-        raise BadRequest("Bad type for 'id' field")
-
+def model_get_transaction(id: int):
     db_connection = _get_db_connection()
     cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cursor.execute(
