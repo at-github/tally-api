@@ -4,6 +4,7 @@ import psycopg2.extras
 from werkzeug.exceptions import BadRequest, NotFound
 from datetime import datetime
 import uvicorn
+from pydantic import BaseModel, validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
@@ -24,13 +25,21 @@ class Settings(BaseSettings):
 def get_settings():
     return Settings()
 
+class Transaction(BaseModel):
+    amount: int
+    date: datetime
+
+    @validator('date', pre=True)
+    def is_date_format_valid(cls, date_request):
+        return datetime.strptime(date_request, DATE_FORMAT)
+
 app = FastAPI()
 
-@app.get('/favicon.ico', include_in_schema=False)
+@app.get('/favicon.ico', include_in_schema=False, status_code=200)
 def favicon():
     return FileResponse('static/favicon.ico')
 
-@app.get('/transactions')
+@app.get('/transactions', status_code=200)
 def get_transactions():
     db_connection = _get_db_connection()
     cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
@@ -39,14 +48,12 @@ def get_transactions():
     cursor.close()
     db_connection.close()
 
-    return transactions, 200
+    return transactions
 
-@app.post('/transactions')
-def post_transaction():
-    body = request.get_json()
-    amount = body['amount']
-    date   = body['date']
-    _check_data_for_post_and_put(body)
+@app.post('/transactions', status_code=201)
+async def post_transaction(transaction: Transaction):
+    amount = transaction.amount
+    date   = transaction.date
 
     db_connection = _get_db_connection()
     cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
@@ -61,58 +68,7 @@ def post_transaction():
 
     transaction['date'] = transaction['date'].strftime(DATE_FORMAT)
 
-    return transaction, 201
-
-@app.put('/transactions/<id>')
-def put_transaction(id):
-    body = request.get_json()
-    _check_data_for_post_and_put(body)
-    model_get_transaction(id)
-    amount = body['amount']
-    date   = body['date']
-
-    db_connection = _get_db_connection()
-    cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cursor.execute(
-        'update {table} set (amount, date) = (%(int)s, %(date)s) returning *'.format(table=DB_TABLE_TRANSACTION),
-        {'str': DB_TABLE_TRANSACTION, 'int': amount, 'date': date}
-    )
-    transaction = cursor.fetchone()
-    db_connection.commit()
-    cursor.close()
-    db_connection.close()
-
-    transaction['date'] = transaction['date'].strftime(DATE_FORMAT)
-
-    return transaction, 200
-
-@app.delete('/transactions/<id>')
-def delete_transaction(id):
-    model_get_transaction(id)
-
-    db_connection = _get_db_connection()
-    cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cursor.execute(
-        'delete from {table} where id = %(int)s'.format(table=DB_TABLE_TRANSACTION),
-        {'int': id}
-    )
-    db_connection.commit()
-    cursor.close()
-    db_connection.close()
-
-    return '', 204
-
-@app.get('/transactions/<id>')
-def get_transaction(id):
-    transaction = model_get_transaction(id)
-    transaction['date'] = transaction['date'].strftime(DATE_FORMAT)
-
-    return transaction, 200
-
-# Error handlers
-@app.errorhandler(400)
-def respond_not_found(error):
-    return _respond_error(error.description, error.code)
+    return transaction
 
 @app.errorhandler(404)
 def respond_not_found(error):
@@ -160,21 +116,3 @@ def _get_db_connection():
         user=settings.DB_USER,
         password=settings.DB_PASSWORD
     )
-
-def _check_data_for_post_and_put(data):
-    try:
-        amount = data['amount']
-        date   = data['date']
-    except KeyError as exception:
-        raise BadRequest("Missing field: {}".format(exception))
-
-    if type(amount) != int:
-        raise BadRequest("Bad type for 'amount' field")
-
-    if type(date) != str:
-        raise BadRequest("Bad type for 'date' field")
-
-    try:
-        datetime.strptime(date, DATE_FORMAT)
-    except ValueError:
-        raise BadRequest("Bad format for 'date' field: {}".format(DATE_FORMAT))
