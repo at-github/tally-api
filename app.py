@@ -116,7 +116,10 @@ def delete_transaction(id: int):
 
 @app.get('/transactions/{id}', status_code=200)
 def get_transaction(id):
-    transaction = model_get_transaction(id)
+    try:
+        transaction = model_get_transaction(id)
+    except NotFound as exception:
+        raise HTTPException(status_code=404, detail=exception.description)
     transaction['date'] = transaction['date'].strftime(DATE_FORMAT)
 
     return transaction
