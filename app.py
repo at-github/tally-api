@@ -114,6 +114,13 @@ def delete_transaction(id: int):
 
     return ''
 
+@app.get('/transactions/{id}', status_code=200)
+def get_transaction(id):
+    transaction = model_get_transaction(id)
+    transaction['date'] = transaction['date'].strftime(DATE_FORMAT)
+
+    return transaction
+
 # Future model
 
 def model_get_transaction(id: int):
