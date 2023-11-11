@@ -141,12 +141,6 @@ def model_get_transaction(id: int):
 
 # Private
 
-def _respond_error(message, status_code=400):
-    return {
-        'message': message,
-        'status': status_code
-    }, status_code
-
 def _get_db_connection():
     settings = get_settings()
 
