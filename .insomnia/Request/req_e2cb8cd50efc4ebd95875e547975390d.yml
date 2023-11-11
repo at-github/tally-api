@@ -1,10 +1,10 @@
-_id: req_7d6a1debcda44ad8a92b0fd428556712
+_id: req_e2cb8cd50efc4ebd95875e547975390d
 type: Request
 parentId: wrk_88412ad666fa43dcbbfa30db23026e9a
-modified: 1699740732169
-created: 1699709352982
-url: "{{ _.base_url }}/transactions"
-name: transactions
+modified: 1699740966500
+created: 1699740752388
+url: "{{ _.base_url }}/transactions/1"
+name: transactions/id
 description: ""
 method: GET
 body: {}
@@ -13,7 +13,7 @@ headers:
   - name: User-Agent
     value: insomnia/2023.5.8
 authentication: {}
-metaSortKey: -1699709352982
+metaSortKey: -1699708942077.5
 isPrivate: false
 settingStoreCookies: true
 settingSendCookies: true
