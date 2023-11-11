@@ -1,0 +1,22 @@
+_id: ut_11e19fc3e9cc41b49bf161f293ca2d2a
+type: UnitTest
+parentId: uts_089d1b4000ca4333a8e7918ed1a24ada
+modified: 1699721623296
+created: 1699720395989
+requestId: req_7d6a1debcda44ad8a92b0fd428556712
+name: Schema
+code: |-
+  const response = await insomnia.send()
+  const body = JSON.parse(response.data)
+  expect(body).to.be.an('array')
+
+  body.forEach(transaction => {
+  	expect(transaction).to.be.an('object')
+  	expect(transaction).to.have.property('id')
+  	
+  	expect(transaction).to.have.property('amount')
+  	expect(transaction.amount).to.be.an('number')
+  	
+  	expect(transaction).to.have.property('date')
+  	expect(transaction.date).to.match(/^\d{4}-\d{2}-\d{2}/)
+  })
