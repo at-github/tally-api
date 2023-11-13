@@ -33,6 +33,16 @@ class Transaction(BaseModel):
     def is_date_format_valid(cls, date_request):
         return datetime.strptime(date_request, DATE_FORMAT)
 
+class TransactionResponse(BaseModel):
+    id: int
+    amount: int
+    date: datetime
+
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.strftime(DATE_FORMAT)
+        }
+
 app = FastAPI()
 
 @app.get('/favicon.ico', include_in_schema=False, status_code=200)
@@ -40,10 +50,12 @@ def favicon():
     return FileResponse('static/favicon.ico')
 
 @app.get('/transactions', status_code=200)
-def get_transactions():
+def get_transactions() -> list[TransactionResponse]:
     db_connection = _get_db_connection()
     cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cursor.execute('select * from {}'.format(DB_TABLE_TRANSACTION))
+    cursor.execute(
+        'select id, amount, date from {table}'.format(table=DB_TABLE_TRANSACTION)
+    )
     transactions = cursor.fetchall()
     cursor.close()
     db_connection.close()
@@ -51,7 +63,7 @@ def get_transactions():
     return transactions
 
 @app.post('/transactions', status_code=201)
-async def post_transaction(transaction: Transaction):
+def post_transaction(transaction: Transaction) -> TransactionResponse:
     amount = transaction.amount
     date   = transaction.date
 
@@ -59,19 +71,17 @@ async def post_transaction(transaction: Transaction):
     cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cursor.execute(
         'insert into {table} (amount, date) values (%(int)s, %(date)s) returning *'.format(table=DB_TABLE_TRANSACTION),
-        {'str': DB_TABLE_TRANSACTION, 'int': amount, 'date': date}
+        {'int': amount, 'date': date}
     )
     transaction = cursor.fetchone()
     db_connection.commit()
     cursor.close()
     db_connection.close()
 
-    transaction['date'] = transaction['date'].strftime(DATE_FORMAT)
-
     return transaction
 
 @app.put('/transactions/{id}', status_code=200)
-async def put_transaction(id: int, transaction: Transaction):
+def put_transaction(id: int, transaction: Transaction) -> TransactionResponse:
     amount = transaction.amount
     date   = transaction.date
 
@@ -91,12 +101,10 @@ async def put_transaction(id: int, transaction: Transaction):
     cursor.close()
     db_connection.close()
 
-    transaction['date'] = transaction['date'].strftime(DATE_FORMAT)
-
     return transaction
 
 @app.delete('/transactions/{id}', status_code=204)
-def delete_transaction(id: int):
+def delete_transaction(id: int) -> None:
     try:
         model_get_transaction(id)
     except NotFound as exception:
@@ -112,17 +120,12 @@ def delete_transaction(id: int):
     cursor.close()
     db_connection.close()
 
-    return ''
-
 @app.get('/transactions/{id}', status_code=200)
-def get_transaction(id):
+def get_transaction(id) -> TransactionResponse:
     try:
-        transaction = model_get_transaction(id)
+        return model_get_transaction(id)
     except NotFound as exception:
         raise HTTPException(status_code=404, detail=exception.description)
-    transaction['date'] = transaction['date'].strftime(DATE_FORMAT)
-
-    return transaction
 
 # Future model
 
