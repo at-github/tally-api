@@ -9,6 +9,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 
+from responses.transaction import TransactionResponse
+
 DB_TABLE_TRANSACTION = 'transactions'
 DATE_FORMAT = '%Y-%m-%d'
 
@@ -32,16 +34,6 @@ class Transaction(BaseModel):
     @validator('date', pre=True)
     def is_date_format_valid(cls, date_request):
         return datetime.strptime(date_request, DATE_FORMAT)
-
-class TransactionResponse(BaseModel):
-    id: int
-    amount: int
-    date: datetime
-
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.strftime(DATE_FORMAT)
-        }
 
 app = FastAPI()
 
