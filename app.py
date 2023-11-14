@@ -10,9 +10,9 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 
 from responses.transaction import TransactionResponse
+from models.transaction import TransactionModel
 
 DB_TABLE_TRANSACTION = 'transactions'
-DATE_FORMAT = '%Y-%m-%d'
 
 class Settings(BaseSettings):
     ENV: str
@@ -26,14 +26,6 @@ class Settings(BaseSettings):
 
 def get_settings():
     return Settings()
-
-class Transaction(BaseModel):
-    amount: int
-    date: datetime
-
-    @validator('date', pre=True)
-    def is_date_format_valid(cls, date_request):
-        return datetime.strptime(date_request, DATE_FORMAT)
 
 app = FastAPI()
 
@@ -55,7 +47,7 @@ def get_transactions() -> list[TransactionResponse]:
     return transactions
 
 @app.post('/transactions', status_code=201)
-def post_transaction(transaction: Transaction) -> TransactionResponse:
+def post_transaction(transaction: TransactionModel) -> TransactionResponse:
     amount = transaction.amount
     date   = transaction.date
 
@@ -73,7 +65,7 @@ def post_transaction(transaction: Transaction) -> TransactionResponse:
     return transaction
 
 @app.put('/transactions/{id}', status_code=200)
-def put_transaction(id: int, transaction: Transaction) -> TransactionResponse:
+def put_transaction(id: int, transaction: TransactionModel) -> TransactionResponse:
     amount = transaction.amount
     date   = transaction.date
 

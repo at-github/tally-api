@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
 
-DATE_FORMAT = '%Y-%m-%d'
+from constants import DATE_FORMAT
 
 class TransactionResponse(BaseModel):
     id: int
