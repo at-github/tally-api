@@ -3,6 +3,7 @@ from datetime import datetime
 
 from constants import DATE_FORMAT
 
+
 class TransactionResponse(BaseModel):
     id: int
     amount: int

@@ -11,6 +11,7 @@ from models.transaction import TransactionModel
 
 DB_TABLE_TRANSACTION = 'transactions'
 
+
 class Settings(BaseSettings):
     ENV: str
     DEBUG: bool = True
@@ -21,30 +22,38 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env")
 
+
 class SortTransactionsEnum(Enum):
     DATE = 'date'
     AMOUNT = 'amount'
+
 
 class OrderTransactionsEnum(Enum):
     ASC = 'asc'
     DESC = 'desc'
 
+
 def get_settings():
     return Settings()
 
+
 app = FastAPI()
+
 
 @app.get('/favicon.ico', include_in_schema=False, status_code=200)
 def favicon():
     return FileResponse('static/favicon.ico')
 
+
 @app.get('/transactions', status_code=200)
 def get_transactions(
         sort: SortTransactionsEnum | None = SortTransactionsEnum.DATE,
         order: OrderTransactionsEnum | None = OrderTransactionsEnum.DESC
-    ) -> list[TransactionResponse]:
+) -> list[TransactionResponse]:
     db_connection = _get_db_connection()
-    cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cursor = db_connection.cursor(
+        cursor_factory=psycopg2.extras.RealDictCursor
+    )
     cursor.execute(
         'select id, amount, date from {table} order by {sort} {order}'.format(
             table=DB_TABLE_TRANSACTION,
@@ -58,15 +67,21 @@ def get_transactions(
 
     return transactions
 
+
 @app.post('/transactions', status_code=201)
 def post_transaction(transaction: TransactionModel) -> TransactionResponse:
     amount = transaction.amount
-    date   = transaction.date
+    date = transaction.date
 
     db_connection = _get_db_connection()
-    cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cursor = db_connection.cursor(
+        cursor_factory=psycopg2.extras.RealDictCursor
+    )
     cursor.execute(
-        'insert into {table} (amount, date) values (%(int)s, %(date)s) returning *'.format(table=DB_TABLE_TRANSACTION),
+        '''insert into {table} (amount, date)
+        values (%(int)s, %(date)s) returning *'''.format(
+            table=DB_TABLE_TRANSACTION
+        ),
         {'int': amount, 'date': date}
     )
     transaction = cursor.fetchone()
@@ -76,10 +91,14 @@ def post_transaction(transaction: TransactionModel) -> TransactionResponse:
 
     return transaction
 
+
 @app.put('/transactions/{id}', status_code=200)
-def put_transaction(id: int, transaction: TransactionModel) -> TransactionResponse:
+def put_transaction(
+    id: int,
+    transaction: TransactionModel
+) -> TransactionResponse:
     amount = transaction.amount
-    date   = transaction.date
+    date = transaction.date
 
     try:
         model_get_transaction(id)
@@ -87,9 +106,14 @@ def put_transaction(id: int, transaction: TransactionModel) -> TransactionRespon
         raise HTTPException(status_code=404, detail=exception.description)
 
     db_connection = _get_db_connection()
-    cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cursor = db_connection.cursor(
+        cursor_factory=psycopg2.extras.RealDictCursor
+    )
     cursor.execute(
-        'update {table} set (amount, date) = (%(int)s, %(date)s) returning *'.format(table=DB_TABLE_TRANSACTION),
+        '''update {table} set (amount, date) = (%(int)s, %(date)s)
+        returning *'''.format(
+            table=DB_TABLE_TRANSACTION
+        ),
         {'str': DB_TABLE_TRANSACTION, 'int': amount, 'date': date}
     )
     transaction = cursor.fetchone()
@@ -99,6 +123,7 @@ def put_transaction(id: int, transaction: TransactionModel) -> TransactionRespon
 
     return transaction
 
+
 @app.delete('/transactions/{id}', status_code=204)
 def delete_transaction(id: int) -> None:
     try:
@@ -107,14 +132,19 @@ def delete_transaction(id: int) -> None:
         raise HTTPException(status_code=404, detail=exception.description)
 
     db_connection = _get_db_connection()
-    cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cursor = db_connection.cursor(
+        cursor_factory=psycopg2.extras.RealDictCursor
+    )
     cursor.execute(
-        'delete from {table} where id = %(int)s'.format(table=DB_TABLE_TRANSACTION),
+        'delete from {table} where id = %(int)s'.format(
+            table=DB_TABLE_TRANSACTION
+        ),
         {'int': id}
     )
     db_connection.commit()
     cursor.close()
     db_connection.close()
+
 
 @app.get('/transactions/{id}', status_code=200)
 def get_transaction(id) -> TransactionResponse:
@@ -125,9 +155,12 @@ def get_transaction(id) -> TransactionResponse:
 
 # Future model
 
+
 def model_get_transaction(id: int):
     db_connection = _get_db_connection()
-    cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cursor = db_connection.cursor(
+        cursor_factory=psycopg2.extras.RealDictCursor
+    )
     cursor.execute(
         'select * from {} where id = %(int)s'.format(DB_TABLE_TRANSACTION),
         {'int': id}
@@ -142,6 +175,7 @@ def model_get_transaction(id: int):
     return transaction
 
 # Private
+
 
 def _get_db_connection():
     settings = get_settings()
