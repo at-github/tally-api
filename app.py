@@ -1,3 +1,4 @@
+from enum import Enum
 import os
 import psycopg2
 import psycopg2.extras
@@ -24,6 +25,14 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env")
 
+class SortTransactionsEnum(Enum):
+    DATE = 'date'
+    AMOUNT = 'amount'
+
+class OrderTransactionsEnum(Enum):
+    ASC = 'asc'
+    DESC = 'desc'
+
 def get_settings():
     return Settings()
 
@@ -34,11 +43,18 @@ def favicon():
     return FileResponse('static/favicon.ico')
 
 @app.get('/transactions', status_code=200)
-def get_transactions() -> list[TransactionResponse]:
+def get_transactions(
+        sort: SortTransactionsEnum | None = SortTransactionsEnum.DATE,
+        order: OrderTransactionsEnum | None = OrderTransactionsEnum.DESC
+    ) -> list[TransactionResponse]:
     db_connection = _get_db_connection()
     cursor = db_connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cursor.execute(
-        'select id, amount, date from {table}'.format(table=DB_TABLE_TRANSACTION)
+        'select id, amount, date from {table} order by {sort} {order}'.format(
+            table=DB_TABLE_TRANSACTION,
+            sort=sort.value,
+            order=order.value
+        )
     )
     transactions = cursor.fetchall()
     cursor.close()
