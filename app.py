@@ -1,11 +1,7 @@
 from enum import Enum
-import os
 import psycopg2
 import psycopg2.extras
-from werkzeug.exceptions import BadRequest, NotFound
-from datetime import datetime
-import uvicorn
-from pydantic import BaseModel, validator
+from werkzeug.exceptions import NotFound
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
