@@ -4,7 +4,7 @@ from datetime import datetime
 from constants import DATE_FORMAT
 
 
-class TransactionModel(BaseModel):
+class TransactionRequest(BaseModel):
     amount: int
     date: datetime
 

@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 
 from responses.transaction import TransactionResponse
-from models.transaction import TransactionModel
+from requests.transaction import TransactionRequest
 
 DB_TABLE_TRANSACTION = 'transactions'
 
@@ -69,7 +69,7 @@ def get_transactions(
 
 
 @app.post('/transactions', status_code=201)
-def post_transaction(transaction: TransactionModel) -> TransactionResponse:
+def post_transaction(transaction: TransactionRequest) -> TransactionResponse:
     amount = transaction.amount
     date = transaction.date
 
@@ -95,7 +95,7 @@ def post_transaction(transaction: TransactionModel) -> TransactionResponse:
 @app.put('/transactions/{id}', status_code=200)
 def put_transaction(
     id: int,
-    transaction: TransactionModel
+    transaction: TransactionResponse
 ) -> TransactionResponse:
     amount = transaction.amount
     date = transaction.date
