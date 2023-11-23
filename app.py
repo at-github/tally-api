@@ -3,11 +3,28 @@ import psycopg2
 import psycopg2.extras
 from werkzeug.exceptions import NotFound
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.responses import FileResponse
+from sqlalchemy.orm import Session
 
 from responses.transaction import TransactionResponse
 from requests.transaction import TransactionRequest
+
+import crud
+from database import SessionLocal, engine
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+Base.metadata.create_all(bind=engine)
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
 
 DB_TABLE_TRANSACTION = 'transactions'
 
@@ -37,6 +54,14 @@ def get_settings():
     return Settings()
 
 
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
 app = FastAPI()
 
 
@@ -47,25 +72,11 @@ def favicon():
 
 @app.get('/transactions', status_code=200)
 def get_transactions(
+        db: Session = Depends(get_db),
         sort: SortTransactionsEnum | None = SortTransactionsEnum.DATE,
         order: OrderTransactionsEnum | None = OrderTransactionsEnum.DESC
 ) -> list[TransactionResponse]:
-    db_connection = _get_db_connection()
-    cursor = db_connection.cursor(
-        cursor_factory=psycopg2.extras.RealDictCursor
-    )
-    cursor.execute(
-        'select id, amount, date from {table} order by {sort} {order}'.format(
-            table=DB_TABLE_TRANSACTION,
-            sort=sort.value,
-            order=order.value
-        )
-    )
-    transactions = cursor.fetchall()
-    cursor.close()
-    db_connection.close()
-
-    return transactions
+    return crud.get_transactions(db)
 
 
 @app.post('/transactions', status_code=201)
