@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, Date
-from database import Base
+from .database import Base
 
 
 # We will use this Base class we created before to create the SQLAlchemy models

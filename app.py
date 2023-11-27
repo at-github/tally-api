@@ -11,7 +11,7 @@ from responses.transaction import TransactionResponse
 from requests.transaction import TransactionRequest
 
 import crud
-from database import SessionLocal, engine
+from models.database import SessionLocal, engine
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
