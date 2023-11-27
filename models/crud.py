@@ -24,3 +24,10 @@ def create_transaction(db: Session, transaction: TransactionCreate):
     db.refresh(db_transaction)
 
     return db_transaction
+
+
+def delete_transaction(db: Session, transaction_id: int):
+    db.query(models.Transaction).filter(
+        models.Transaction.id == transaction_id
+    ).delete()
+    db.commit()

@@ -116,25 +116,8 @@ def put_transaction(id: int, transaction: TransactionRequest) -> Transaction:
 
 
 @app.delete('/transactions/{id}', status_code=204)
-def delete_transaction(id: int) -> None:
-    try:
-        model_get_transaction(id)
-    except NotFound as exception:
-        raise HTTPException(status_code=404, detail=exception.description)
-
-    db_connection = _get_db_connection()
-    cursor = db_connection.cursor(
-        cursor_factory=psycopg2.extras.RealDictCursor
-    )
-    cursor.execute(
-        'delete from {table} where id = %(int)s'.format(
-            table=DB_TABLE_TRANSACTION
-        ),
-        {'int': id}
-    )
-    db_connection.commit()
-    cursor.close()
-    db_connection.close()
+def delete_transaction(id: int, db: Session = Depends(get_db)) -> None:
+    models.crud.delete_transaction(db, transaction_id=id)
 
 
 @app.get('/transactions/{id}', status_code=200)
