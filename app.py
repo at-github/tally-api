@@ -8,8 +8,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from requests.transaction import TransactionRequest
-
-import crud
+import models.crud
 from schemas.transaction import Transaction
 from models.database import SessionLocal, engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -76,7 +75,7 @@ def get_transactions(
         sort: SortTransactionsEnum | None = SortTransactionsEnum.DATE,
         order: OrderTransactionsEnum | None = OrderTransactionsEnum.DESC
 ) -> list[Transaction]:
-    return crud.get_transactions(db)
+    return models.crud.get_transactions(db)
 
 
 @app.post('/transactions', status_code=201)
