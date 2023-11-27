@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from requests.transaction import TransactionRequest
 import models.crud
-from schemas.transaction import Transaction
+from schemas.transaction import Transaction, TransactionCreate
 from models.database import SessionLocal, engine
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -79,27 +79,11 @@ def get_transactions(
 
 
 @app.post('/transactions', status_code=201)
-def post_transaction(transaction: TransactionRequest) -> Transaction:
-    amount = transaction.amount
-    date = transaction.date
-
-    db_connection = _get_db_connection()
-    cursor = db_connection.cursor(
-        cursor_factory=psycopg2.extras.RealDictCursor
-    )
-    cursor.execute(
-        '''insert into {table} (amount, date)
-        values (%(int)s, %(date)s) returning *'''.format(
-            table=DB_TABLE_TRANSACTION
-        ),
-        {'int': amount, 'date': date}
-    )
-    transaction = cursor.fetchone()
-    db_connection.commit()
-    cursor.close()
-    db_connection.close()
-
-    return transaction
+def post_transaction(
+        transaction: TransactionCreate,
+        db: Session = Depends(get_db)
+) -> Transaction:
+    return models.crud.create_transaction(db=db, transaction=transaction)
 
 
 @app.put('/transactions/{id}', status_code=200)
