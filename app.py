@@ -7,10 +7,10 @@ from fastapi import Depends, FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
-from responses.transaction import TransactionResponse
 from requests.transaction import TransactionRequest
 
 import crud
+from schemas.transaction import Transaction
 from models.database import SessionLocal, engine
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -75,12 +75,12 @@ def get_transactions(
         db: Session = Depends(get_db),
         sort: SortTransactionsEnum | None = SortTransactionsEnum.DATE,
         order: OrderTransactionsEnum | None = OrderTransactionsEnum.DESC
-) -> list[TransactionResponse]:
+) -> list[Transaction]:
     return crud.get_transactions(db)
 
 
 @app.post('/transactions', status_code=201)
-def post_transaction(transaction: TransactionRequest) -> TransactionResponse:
+def post_transaction(transaction: TransactionRequest) -> Transaction:
     amount = transaction.amount
     date = transaction.date
 
@@ -104,10 +104,7 @@ def post_transaction(transaction: TransactionRequest) -> TransactionResponse:
 
 
 @app.put('/transactions/{id}', status_code=200)
-def put_transaction(
-    id: int,
-    transaction: TransactionResponse
-) -> TransactionResponse:
+def put_transaction(id: int, transaction: TransactionRequest) -> Transaction:
     amount = transaction.amount
     date = transaction.date
 
@@ -158,13 +155,11 @@ def delete_transaction(id: int) -> None:
 
 
 @app.get('/transactions/{id}', status_code=200)
-def get_transaction(id) -> TransactionResponse:
+def get_transaction(id: int) -> Transaction:
     try:
         return model_get_transaction(id)
     except NotFound as exception:
         raise HTTPException(status_code=404, detail=exception.description)
-
-# Future model
 
 
 def model_get_transaction(id: int):
