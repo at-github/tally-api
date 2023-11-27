@@ -8,6 +8,12 @@ def get_transactions(db: Session):
     return db.query(models.Transaction).all()
 
 
+def get_transaction(db: Session, transaction_id: int):
+    return db.query(models.Transaction).filter(
+        models.Transaction.id == transaction_id
+    ).first()
+
+
 def create_transaction(db: Session, transaction: TransactionCreate):
     db_transaction = models.Transaction(
         amount=transaction.amount,

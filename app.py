@@ -138,11 +138,16 @@ def delete_transaction(id: int) -> None:
 
 
 @app.get('/transactions/{id}', status_code=200)
-def get_transaction(id: int) -> Transaction:
-    try:
-        return model_get_transaction(id)
-    except NotFound as exception:
-        raise HTTPException(status_code=404, detail=exception.description)
+def get_transaction(
+    id: int,
+    db: Session = Depends(get_db)
+) -> Transaction:
+    db_transaction = models.crud.get_transaction(db, transaction_id=id)
+
+    if db_transaction is None:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
+    return db_transaction
 
 
 def model_get_transaction(id: int):
