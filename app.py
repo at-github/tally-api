@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 import models.crud
 from schemas.transaction import Transaction, TransactionCreate
 from models.database import SessionLocal, engine
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
 Base.metadata.create_all(bind=engine)

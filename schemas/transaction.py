@@ -1,4 +1,4 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 from datetime import datetime, date
 
 from constants import DATE_FORMAT
@@ -8,7 +8,7 @@ class TransactionBase(BaseModel):
     amount: int
     date: datetime | str
 
-    @validator('date', pre=True)
+    @field_validator('date', mode="before")
     def is_date_format_valid(date_request: datetime | str):
         if (type(date_request) is datetime):
             return date_request
@@ -16,9 +16,10 @@ class TransactionBase(BaseModel):
         if (type(date_request) is date):
             return date_request
 
+        # Necessary?
         return datetime.strptime(date_request, DATE_FORMAT)
 
-    class Config:
+    class ConfigDict:
         json_encoders = {
             datetime: lambda v: v.strftime(DATE_FORMAT)
         }
@@ -31,5 +32,5 @@ class TransactionCreate(TransactionBase):
 class Transaction(TransactionBase):
     id: int
 
-    class Config:
+    class ConfigDict:
         from_attributes = True
