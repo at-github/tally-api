@@ -14,9 +14,8 @@ class TransactionBase(BaseModel):
             return date_request
 
         if (type(date_request) is date):
-            return date_request
+            return date_request.isoformat()
 
-        # Necessary?
         return datetime.strptime(date_request, DATE_FORMAT)
 
     class ConfigDict:

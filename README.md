@@ -22,3 +22,9 @@ uvicorn app:app --host hostdomain --port xxxx
 # Or with live reload
 uvicorn app:app --host hostdomain --port xxxx --reload
 ```
+
+### Launch tests
+
+```shell
+pytest
+```
