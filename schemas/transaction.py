@@ -10,6 +10,9 @@ class TransactionBase(BaseModel):
 
     @validator('date', pre=True)
     def is_date_format_valid(date_request: datetime | str):
+        if (type(date_request) is datetime):
+            return date_request
+
         if (type(date_request) is date):
             return date_request
 
