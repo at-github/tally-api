@@ -70,6 +70,20 @@ def test_read_existing_transaction(db_session):
     }
 
 
+def test_read_unexisting_transaction():
+    # Context
+    # Table transaction is cleared before test, so the context is empty data
+
+    # Action
+    response = client.get('/transactions/{id}'.format(id=0))
+
+    # Assertions
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Transaction not found"
+    }
+
+
 @pytest.fixture(autouse=True)
 def db_session():
     db_session = TestSessionLocal()
