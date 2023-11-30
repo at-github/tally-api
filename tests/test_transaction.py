@@ -45,6 +45,19 @@ app.dependency_overrides[get_db] = override_get_db
 client = TestClient(app)
 
 
+# GET /transactions
+def test_list_empty_transaction():
+    # Context
+    # Table transaction is cleared before test, so the context is empty data
+
+    # Action
+    response = client.get('/transactions')
+
+    # Assertions
+    assert response.status_code == 200
+    assert response.json() == []
+
+
 # GET /transactions/{id}
 def test_read_existing_transaction(db_session):
     # Context
