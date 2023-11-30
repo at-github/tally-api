@@ -64,6 +64,11 @@ def put_transaction(
 
 @app.delete('/transactions/{id}', status_code=204)
 def delete_transaction(id: int, db: Session = Depends(get_db)) -> None:
+    db_transaction = crud.get_transaction(db, transaction_id=id)
+
+    if db_transaction is None:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
     crud.delete_transaction(db, transaction_id=id)
 
 

@@ -327,6 +327,38 @@ def test_update_unexisting_transaction():
     }
 
 
+# DELETE /transactions
+def test_delete_transaction(db_session: Session):
+    # Context
+    db_transaction = add_transaction(
+        db_session,
+        amount=1200,
+        date="2023-11-30"
+    )
+
+    # Action
+    response = client.delete('/transactions/{id}'.format(id=db_transaction.id))
+    db_transactions = db_session.query(models.Transaction).all()
+
+    # Assertions
+    assert response.status_code == 204
+    assert not db_transactions
+
+
+def test_delete_unexisting_transaction(db_session):
+    # Context
+    # Table transaction is cleared before test, so the context is empty data
+
+    # Action
+    response = client.delete('/transactions/{id}'.format(id=0))
+
+    # Assertions
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Transaction not found"
+    }
+
+
 @pytest.fixture(autouse=True)
 def db_session():
     db_session = TestSessionLocal()
