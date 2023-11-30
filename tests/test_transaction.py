@@ -177,6 +177,28 @@ def test_read_unexisting_transaction():
     }
 
 
+# POST /transactions
+def test_create_transaction():
+    # Context
+    # Table transaction is cleared before test, so the context is empty data
+
+    amount = 1000
+    date = "2023-11-30"
+    # Action
+    response = client.post(
+        '/transactions',
+        json={
+            "amount": amount,
+            "date": date
+        }
+    )
+    assert response.status_code == 201
+    assert response.json().items() >= {
+        "amount": amount,
+        "date": date
+    }.items()
+
+
 @pytest.fixture(autouse=True)
 def db_session():
     db_session = TestSessionLocal()
