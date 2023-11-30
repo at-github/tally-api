@@ -32,3 +32,8 @@ pytest
 # Or
 pytest -f --color yes
 ```
+
+#### Or see coverage
+```shell
+pytest --cov=. tests
+```
