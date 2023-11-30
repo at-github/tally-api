@@ -72,4 +72,6 @@ def test_read_existing_transaction(db_session):
 
 @pytest.fixture(autouse=True)
 def db_session():
-    yield TestSessionLocal()
+    db_session = TestSessionLocal()
+    db_session.query(models.Transaction).delete()
+    yield db_session
