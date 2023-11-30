@@ -264,6 +264,69 @@ def test_edit_transaction(db_session: Session):
     }
 
 
+def test_edit_transaction_without_amount(db_session: Session):
+    # Context
+    db_transaction = add_transaction(
+        db_session,
+        amount=1200,
+        date="2023-11-30"
+    )
+
+    # Action
+    response = client.put(
+        '/transactions/{id}'.format(id=db_transaction.id),
+        json={"date": "2023-11-30"}
+    )
+
+    detail = response.json()["detail"][0]
+    assert response.status_code == 422
+    assert detail.items() >= {
+        "msg": "Field required",
+        "type": "missing",
+        "loc": ["body", "amount"]
+    }.items()
+
+
+def test_edit_transaction_without_date(db_session: Session):
+    # Context
+    db_transaction = add_transaction(
+        db_session,
+        amount=1200,
+        date="2023-11-30"
+    )
+
+    # Action
+    response = client.put(
+        '/transactions/{id}'.format(id=db_transaction.id),
+        json={"amount": 5000}
+    )
+
+    detail = response.json()["detail"][0]
+    assert response.status_code == 422
+    assert detail.items() >= {
+        "msg": "Field required",
+        "type": "missing",
+        "loc": ["body", "date"]
+    }.items()
+
+
+def test_update_unexisting_transaction():
+    # Context
+    # Table transaction is cleared before test, so the context is empty data
+
+    # Action
+    response = client.put(
+        '/transactions/{id}'.format(id=0),
+        json={"amount": 6000, "date": "2023-11-30"}
+    )
+
+    # Assertions
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Transaction not found"
+    }
+
+
 @pytest.fixture(autouse=True)
 def db_session():
     db_session = TestSessionLocal()
