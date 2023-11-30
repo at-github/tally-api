@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import Session, sessionmaker, declarative_base
 from fastapi.testclient import TestClient
 from pydantic_settings import BaseSettings, SettingsConfigDict
 import pytest
@@ -50,13 +50,7 @@ def test_read_existing_transaction(db_session):
     # Context
     amount = 700
     date = "2023-11-29"
-    db_transaction = models.Transaction(
-        amount=amount,
-        date=date
-    )
-    db_session.add(db_transaction)
-    db_session.commit()
-    db_session.refresh(db_transaction)
+    db_transaction = add_transaction(db_session, amount=amount, date=date)
 
     # Action
     response = client.get('/transactions/{id}'.format(id=db_transaction.id))
@@ -88,4 +82,22 @@ def test_read_unexisting_transaction():
 def db_session():
     db_session = TestSessionLocal()
     db_session.query(models.Transaction).delete()
+    db_session.commit()
     yield db_session
+    db_session.close()
+
+
+def add_transaction(
+    session: Session,
+    amount: int = 100,
+    date: str = "2023-11-30"
+):
+    db_transaction = models.Transaction(
+        amount=amount,
+        date=date
+    )
+    session.add(db_transaction)
+    session.commit()
+    session.refresh(db_transaction)
+
+    return db_transaction
