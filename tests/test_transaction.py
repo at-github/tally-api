@@ -184,6 +184,7 @@ def test_create_transaction():
 
     amount = 1000
     date = "2023-11-30"
+
     # Action
     response = client.post(
         '/transactions',
@@ -235,6 +236,32 @@ def test_create_transaction_without_date():
         "type": "missing",
         "loc": ["body", "date"]
     }.items()
+
+
+# PUT /transactions
+def test_edit_transaction(db_session: Session):
+    # Context
+
+    amount = 1100
+    date = "2023-11-30"
+    db_transaction = add_transaction(db_session, amount=amount, date=date)
+
+    new_amount = amount + 1000
+    new_date = "2024-12-03"
+    # Action
+    response = client.put(
+        '/transactions/{id}'.format(id=db_transaction.id),
+        json={
+            "amount": new_amount,
+            "date": new_date
+        }
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "id": db_transaction.id,
+        "amount": new_amount,
+        "date": new_date
+    }
 
 
 @pytest.fixture(autouse=True)
