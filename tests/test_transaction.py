@@ -199,6 +199,44 @@ def test_create_transaction():
     }.items()
 
 
+def test_create_transaction_without_amount():
+    # Context
+    # Table transaction is cleared before test, so the context is empty data
+
+    # Action
+    response = client.post(
+        '/transactions',
+        json={"date": "2023-11-30"}
+    )
+
+    detail = response.json()["detail"][0]
+    assert response.status_code == 422
+    assert detail.items() >= {
+        "msg": "Field required",
+        "type": "missing",
+        "loc": ["body", "amount"]
+    }.items()
+
+
+def test_create_transaction_without_date():
+    # Context
+    # Table transaction is cleared before test, so the context is empty data
+
+    # Action
+    response = client.post(
+        '/transactions',
+        json={"amount": 5000}
+    )
+
+    detail = response.json()["detail"][0]
+    assert response.status_code == 422
+    assert detail.items() >= {
+        "msg": "Field required",
+        "type": "missing",
+        "loc": ["body", "date"]
+    }.items()
+
+
 @pytest.fixture(autouse=True)
 def db_session():
     db_session = TestSessionLocal()
