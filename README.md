@@ -24,6 +24,13 @@ uvicorn app:app --host hostdomain --port xxxx
 uvicorn app:app --host hostdomain --port xxxx --reload --env-file .env.dev
 ```
 
+#### Or see coverage
+```shell
+pytest --cov=. tests
+```
+
+## Other
+
 ### Launch tests
 
 ```shell
@@ -33,7 +40,7 @@ pytest
 pytest -f --color yes
 ```
 
-#### Or see coverage
+### Launch migration
 ```shell
-pytest --cov=. tests
+alembic revision --autogenerate -m "Initial migration"
 ```
