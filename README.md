@@ -28,4 +28,7 @@ uvicorn app:app --host hostdomain --port xxxx --reload --env-file .env.dev
 
 ```shell
 pytest
+
+# Or
+pytest -f --color yes
 ```

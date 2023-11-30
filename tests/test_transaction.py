@@ -46,6 +46,92 @@ client = TestClient(app)
 
 
 # GET /transactions
+def test_list_transactions(db_session: Session):
+    # Context
+    db_transaction1 = add_transaction(db_session, date="2023-11-29")
+    db_transaction2 = add_transaction(db_session, date="2023-11-30")
+
+    # Action
+    response = client.get('/transactions')
+
+    # Assertions
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "id": db_transaction2.id,
+            "amount": db_transaction2.amount,
+            "date": db_transaction2.date.isoformat()
+        }, {
+            "id": db_transaction1.id,
+            "amount": db_transaction1.amount,
+            "date": db_transaction1.date.isoformat()
+        }
+    ]
+
+
+def test_list_transactions_order_by_date_asc(db_session: Session):
+    # Context
+    db_transaction1 = add_transaction(db_session, date="2023-11-30")
+    db_transaction2 = add_transaction(db_session, date="2024-11-29")
+
+    # Action
+    response = client.get('/transactions?sort=date&order=asc')
+
+    # Assertions
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "id": db_transaction1.id,
+            "amount": db_transaction1.amount,
+            "date": db_transaction1.date.isoformat()
+        }, {
+            "id": db_transaction2.id,
+            "amount": db_transaction2.amount,
+            "date": db_transaction2.date.isoformat()
+        }
+    ]
+
+
+def test_list_transactions_order_by_amount_desc(db_session: Session):
+    # Context
+    db_transaction1 = add_transaction(
+        db_session,
+        amount="203",
+        date="2023-11-05"
+    )
+    db_transaction2 = add_transaction(
+        db_session,
+        amount="204",
+        date="2023-11-04"
+    )
+    db_transaction3 = add_transaction(
+        db_session,
+        amount="205",
+        date="2023-11-03"
+    )
+
+    # Action
+    response = client.get('/transactions?sort=amount&order=desc')
+
+    # Assertions
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "id": db_transaction3.id,
+            "amount": db_transaction3.amount,
+            "date": db_transaction3.date.isoformat()
+        }, {
+            "id": db_transaction2.id,
+            "amount": db_transaction2.amount,
+            "date": db_transaction2.date.isoformat()
+        }, {
+            "id": db_transaction1.id,
+            "amount": db_transaction1.amount,
+            "date": db_transaction1.date.isoformat()
+        }
+    ]
+
+
 def test_list_empty_transaction():
     # Context
     # Table transaction is cleared before test, so the context is empty data
@@ -59,7 +145,7 @@ def test_list_empty_transaction():
 
 
 # GET /transactions/{id}
-def test_read_existing_transaction(db_session):
+def test_read_existing_transaction(db_session: Session):
     # Context
     amount = 700
     date = "2023-11-29"

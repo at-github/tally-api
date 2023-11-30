@@ -1,11 +1,32 @@
+from enum import Enum
+from sqlalchemy import asc, desc
 from sqlalchemy.orm import Session
 
 import models.transaction as models
 from schemas.transaction import TransactionCreate, Transaction
 
 
-def get_transactions(db: Session):
-    return db.query(models.Transaction).all()
+class SortTransactionsEnum(Enum):
+    DATE = 'date'
+    AMOUNT = 'amount'
+
+
+class OrderTransactionsEnum(Enum):
+    ASC = 'asc'
+    DESC = 'desc'
+
+
+def get_transactions(
+    db: Session,
+    sort: SortTransactionsEnum = SortTransactionsEnum.DATE,
+    order: OrderTransactionsEnum = OrderTransactionsEnum.DESC
+):
+    column_sorted = getattr(models.Transaction, sort.value)
+    direction = asc if order.value == 'asc' else desc
+
+    return db.query(models.Transaction).order_by(
+        direction(column_sorted)
+    ).all()
 
 
 def get_transaction(db: Session, transaction_id: int):

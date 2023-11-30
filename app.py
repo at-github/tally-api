@@ -1,25 +1,14 @@
-from enum import Enum
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.responses import FileResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, declarative_base
 
-import models.crud
+import models.crud as crud
+from models.crud import SortTransactionsEnum, OrderTransactionsEnum
 from schemas.transaction import Transaction, TransactionCreate
 from models.database import SessionLocal, engine
-from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
 Base.metadata.create_all(bind=engine)
-
-
-class SortTransactionsEnum(Enum):
-    DATE = 'date'
-    AMOUNT = 'amount'
-
-
-class OrderTransactionsEnum(Enum):
-    ASC = 'asc'
-    DESC = 'desc'
 
 
 def get_db():
@@ -44,7 +33,7 @@ def get_transactions(
         sort: SortTransactionsEnum | None = SortTransactionsEnum.DATE,
         order: OrderTransactionsEnum | None = OrderTransactionsEnum.DESC
 ) -> list[Transaction]:
-    return models.crud.get_transactions(db)
+    return crud.get_transactions(db, sort, order)
 
 
 @app.post('/transactions', status_code=201)
@@ -52,7 +41,7 @@ def post_transaction(
         transaction: TransactionCreate,
         db: Session = Depends(get_db)
 ) -> Transaction:
-    return models.crud.create_transaction(db=db, transaction=transaction)
+    return crud.create_transaction(db=db, transaction=transaction)
 
 
 @app.put('/transactions/{id}', status_code=200)
@@ -61,12 +50,12 @@ def put_transaction(
     transaction: TransactionCreate,
     db: Session = Depends(get_db)
 ) -> Transaction:
-    db_transaction = models.crud.get_transaction(db, transaction_id=id)
+    db_transaction = crud.get_transaction(db, transaction_id=id)
 
     if db_transaction is None:
         raise HTTPException(status_code=404, detail="Transaction not found")
 
-    return models.crud.update_transaction(
+    return crud.update_transaction(
         db=db,
         transaction_id=id,
         transaction=transaction
@@ -75,7 +64,7 @@ def put_transaction(
 
 @app.delete('/transactions/{id}', status_code=204)
 def delete_transaction(id: int, db: Session = Depends(get_db)) -> None:
-    models.crud.delete_transaction(db, transaction_id=id)
+    crud.delete_transaction(db, transaction_id=id)
 
 
 @app.get('/transactions/{id}', status_code=200)
@@ -83,7 +72,7 @@ def get_transaction(
     id: int,
     db: Session = Depends(get_db)
 ) -> Transaction:
-    db_transaction = models.crud.get_transaction(db, transaction_id=id)
+    db_transaction = crud.get_transaction(db, transaction_id=id)
 
     if db_transaction is None:
         raise HTTPException(status_code=404, detail="Transaction not found")
