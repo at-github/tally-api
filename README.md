@@ -40,7 +40,34 @@ pytest
 pytest -f --color yes
 ```
 
-### Launch migration
+### Migration
+
 ```shell
+#Create migration
+
 alembic revision --autogenerate -m "Initial migration"
+```
+
+```shell
+#Apply migration last migration
+
+alembic upgrade head
+```
+
+```shell
+#List migrations
+
+alembic show ref
+```
+
+```shell
+#Show specific migration
+
+alembic show ref
+```
+
+```shell
+#Restore specific migration
+
+alembic downgrade ref
 ```
